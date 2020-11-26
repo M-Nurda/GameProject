@@ -1,4 +1,4 @@
-import pygame
+import pygame, sys
 import random
 import math
 from pygame import mixer
@@ -6,23 +6,30 @@ from pygame import mixer
 pygame.init()
 
 # Frames per second
-fps = 60
+fps = 120
 
 # Create the screen
 screen = pygame.display.set_mode((1080,800))
-
+# Clock
+clock = pygame.time.Clock()
 # Background
 bg = pygame.image.load('bg4.jpeg')
 bg = pygame.transform.scale(bg, (1080, 800))
 
+bg_menu = pygame.image.load('bg5.jpg')
+bg_menu = pygame.transform.scale(bg_menu, (1080, 800))
+
 # Background sound
-mixer.music.load('bg3_music.wav')
-mixer.music.play(-1)
+# mixer.music.load('bg3_music.wav')
+# mixer.music.play(-1)
 
 # Title and Icon
 pygame.display.set_caption("Space Battle")
 icon = pygame.image.load('project.png')
 pygame.display.set_icon(icon)
+
+#Fonts
+menu_font = pygame.font.Font('freesansbold.ttf', 32)
 
 
 # Player 1
@@ -35,6 +42,7 @@ playerX = 520
 playerY = 700
 playerX_change = 0
 
+
 # Enemy
 enemyImg = []
 enemyX = []
@@ -45,7 +53,7 @@ enemyY_change = []
 enemyNum = 6
 for i in range(enemyNum):
     # Load enemy picture
-    temp=pygame.image.load('ufo.png')
+    temp = pygame.image.load('ufo.png')
     # Change the size of enemy
     temp = pygame.transform.scale(temp, (60, 60))
     # enemyImg.append(pygame.image.load('ufo.png'))
@@ -54,8 +62,40 @@ for i in range(enemyNum):
     # Initial Position and Speed of enemy
     enemyX.append(random.randint(200,799))
     enemyY.append(random.randint(30, 70))
-    enemyX_change.append(0.3)
-    enemyY_change.append(10)
+    enemyX_change.append(1)
+    enemyY_change.append(50)
+
+# Meteor
+meteorImg = []
+meteorX = []
+meteorY = []
+mX_change = []
+mY_change = []
+for i in range(15):
+    copy = pygame.image.load('asteroid.png')
+    copy = pygame.transform.scale(copy, (random.randint(40,60), random.randint(40,70)))
+    meteorImg.append(copy)
+    # Initial Position and Speed of enemy
+    meteorX.append(random.randint(0,150))
+    meteorY.append(random.randint(5,8))
+    mY_change.append(random.uniform(1, 5))
+    mX_change.append(0)
+
+meteorImg1 = []
+meteorX1 = []
+meteorY1 = []
+mX_change1 = []
+mY_change1 = []
+for i in range(15):
+    copy1 = pygame.image.load('asteroid.png')
+    copy1 = pygame.transform.scale(copy1, (random.randint(40,60), random.randint(40,70)))
+    meteorImg.append(copy1)
+    # Initial Position and Speed of enemy
+    meteorX1.append(random.randint(820,1050))
+    meteorY1.append(random.randint(3,8))
+    mY_change1.append(random.uniform(1, 5))
+    mX_change1.append(0)
+
 
 # Right Ammo
 # Load ammo picture
@@ -87,12 +127,33 @@ font = pygame.font.Font('freesansbold.ttf', 32)
 textX = 900
 textY = 20
 
+#Game Over
+gg_font=pygame.font.Font('freesansbold.ttf', 32)
+
+
+
 def show_points(x, y):
     score = font.render("Score: " + str(points), True, (0,255,0))
     screen.blit(score, (x, y))
 
+def GG():
+    gg_text = font.render("GAME OVER", True, (255,0,0))
+    score_t = font.render("Score: "+ str(points), True, (255,255,0))
+
+    screen.blit(gg_text, (450, 300))
+    screen.blit(score_t, (450, 350))
+
+def set_difficulty(value, difficulty):
+    pass
+
 def player(x, y):
     screen.blit(playerImg, (x, y))
+
+def meteor(x, y, i):
+    screen.blit(meteorImg[i], (x, y))
+
+def meteor1(x, y, i):
+    screen.blit(meteorImg1[i], (x, y))
 
 def enemy(x, y, i):
     screen.blit(enemyImg[i], (x, y))
@@ -105,27 +166,48 @@ def fire_ammo2(x, y):
 def fire_ammo1(x, y):
     global ammo_state1
     ammo_state1 = 'fired'
-    screen.blit(ammoImg2, (x - 12, y - 25))
+    screen.blit(ammoImg1, (x - 12, y - 25))
 
 def isCollision(enemyX,enemyY,ammoX1,ammoY1,ammoX2,ammoY2):
     dist1 = math.sqrt((enemyX-ammoX1)**2+(enemyY-ammoY1)**2)
     dist2 = math.sqrt((enemyX-ammoX2)**2+(enemyY-ammoY2)**2)
+
     if dist1 < 27 or dist2 < 27:
+        print(dist1, dist2)
         return True
     else:
         return False
 
-run=True
-while run:
+def touched1(enemyX,enemyY,playerX, playerY):
+    dist1 = math.sqrt((enemyX-playerX)**2+(enemyY-playerY)**2)
+    if dist1 < 27:
+        print(dist1)
+        return True
+    else:
+        return False
+def touched2(enemyX,enemyY,playerX, playerY):
+    dist1 = math.sqrt((enemyX-playerX)**2+(enemyY-playerY)**2)
+    if dist1 < 27:
+        print(dist1)
+        return True
+    else:
+        return False
+
+
+while True:
+    c=0
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
     # RGB = Red, Green, Blue -> background color
     screen.fill((0,0,0))
 
-    # Background
+    # Background menu
     screen.blit(bg,(0,0))
+    # screen.blit(bg_menu,(0,0))
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
 
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_LEFT:
@@ -146,6 +228,7 @@ while run:
         if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
             playerX_change = 0
 
+
     # Boundries Check
     playerX += playerX_change
     if playerX <= 0:
@@ -155,13 +238,23 @@ while run:
 
     # Enemy movement direction and speed change
     for i in range(enemyNum):
+        #Game over
+        if enemyY[i]>700 or c>0:
+            for j in range(enemyNum):
+                enemyY[j]=2000
+                c += 1
+            GG()
+            break
+
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 200:
-            enemyX_change[i] = 0.3
+            enemyX_change[i] = 5
             enemyY[i] += enemyY_change[i]
+
         elif enemyX[i] >= 800:
-            enemyX_change[i] = -0.3
+            enemyX_change[i] = -5
             enemyY[i] += enemyY_change[i]
+
 
         # Collision laser and enemy
         collision = isCollision(enemyX[i], enemyY[i], ammoX1, ammoY1, ammoX2, ammoY2)
@@ -169,16 +262,65 @@ while run:
             boom_sound = mixer.Sound('boom.wav')
             boom_sound.play()
 
-
             ammoY1 = 700
             ammoY2 = 700
             ammo_state2 = 'ready'
             ammo_state1 = 'ready'
             points += 10
             enemyX[i] = random.randint(200, 799)
-            enemyY[i] = random.randint(50, 100)
-
+            enemyY[i] = 50
         enemy(enemyX[i],enemyY[i],i)
+
+    # Meteor left
+    for i in range(15):
+        print(c)
+        if c>0:
+            for j in range(15):
+                meteorX[j]=2000
+            break
+        else:
+            touch1 = touched1(meteorX[i], meteorY[i], playerX, playerY)
+        if touch1==True:
+            boom_sound = mixer.Sound('boom.wav')
+            boom_sound.play()
+            for j in range(15):
+                meteorX[j]=2000
+            GG()
+            c+=1
+
+        meteorY[i] += mY_change[i]
+        if meteorY[i] >= 800:
+            mY_change[i] = random.uniform(2, 7)
+            meteorY[i] = 0
+            # meteorX[i] = random.randint(c+0, c+150)
+            meteorY[i] += mY_change[i]
+        meteor(meteorX[i], meteorY[i], i)
+
+    # Meteor Right
+    for i in range(15):
+        print(c)
+        if c>0:
+            for j in range(15):
+                meteorX1[j]=2000
+            break
+        else:
+            touch2 = touched1(meteorX1[i], meteorY1[i], playerX, playerY)
+        if touch2==True:
+            boom_sound = mixer.Sound('boom.wav')
+            boom_sound.play()
+            for j in range(15):
+                meteorX1[j]=2000
+            GG()
+            c+=1
+
+        meteorY1[i] += mY_change1[i]
+        if meteorY1[i] >= 800:
+            mY_change1[i] = random.uniform(2, 7)
+            meteorY1[i] = 0
+            # meteorX[i] = random.randint(c+0, c+150)
+            meteorY1[i] += mY_change1[i]
+        meteor(meteorX1[i], meteorY[i], i)
+
 
     if ammoY1 <= 0 and ammoY2 <= 0:
         ammoY1 = 700
@@ -193,10 +335,8 @@ while run:
         ammoY2 -= ammoY_change2
         ammoY1 -= ammoY_change1
 
-
-
-
     player(playerX, playerY)
     # enemy(enemyX, enemyY)
     show_points(textX, textY)
     pygame.display.update()
+
