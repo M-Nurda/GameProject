@@ -6,7 +6,7 @@ from pygame import mixer
 pygame.init()
 
 # Frames per second
-fps = 60
+fps = 144
 
 # Create the screen
 screen = pygame.display.set_mode((1080,800))
@@ -307,7 +307,7 @@ while True:
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 200:
             if points < 100:
-                enemyX_change[i] = 10
+                enemyX_change[i] = 1
             elif points >= 100:
                 enemyX_change[i] = 3
             elif points >= 200:
@@ -320,7 +320,7 @@ while True:
 
         elif enemyX[i] >= 800:
             if points < 100:
-                enemyX_change[i] = -10
+                enemyX_change[i] = -1
             elif points >= 100:
                 enemyX_change[i] = -3
             elif points >= 200:
@@ -457,4 +457,6 @@ while True:
     hp(screen, 150-hp_bar)
     print(150, 150-hp_bar, hp_bar)
     pygame.display.update()
+    clock.tick(fps)
+
 

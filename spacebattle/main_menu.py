@@ -80,7 +80,7 @@ def main_menu():
 
         draw_text('Play', font, (0, 153, 0), screen, 515, 260)
         draw_text('Setting', font, (0, 0, 255), screen, 490, 360)
-        draw_text('Game', font, (0, 0, 255), screen, 490, 460)
+        draw_text('Game', font, (0, 0, 255), screen, 495, 460)
         draw_text('Exit', font, (255, 0, 0), screen, 520, 560)
         click = False
 
@@ -97,9 +97,9 @@ def main_menu():
                     click = True
 
         pygame.display.update()
-        mainClock.tick(120)
+        mainClock.tick(60)
 
-
+global enemyNum
 def game():
     # running = True
     # while running:
@@ -148,8 +148,7 @@ def game():
     enemyY = []
     enemyX_change = []
     enemyY_change = []
-
-    enemyNum = 6
+    enemyNum = 5
     for i in range(enemyNum):
         # Load enemy picture
         temp = pygame.image.load('ufo.png')
@@ -194,7 +193,11 @@ def game():
         meteorY1.append(random.randint(3, 8))
         mY_change1.append(random.uniform(1, 6))
         mX_change1.append(0)
-
+    global ammo_state2
+    global ammo_state1
+    global level
+    global points
+    global hp_bar
     # Right Ammo
     # Load ammo picture
     ammoImg2 = pygame.image.load('ammo.png')
@@ -218,6 +221,8 @@ def game():
     ammoX_change1 = 0
     ammoY_change1 = 5
     ammo_state1 = "ready"
+
+
 
     # Points
     points = 0
@@ -385,11 +390,12 @@ def game():
         # Enemy movement direction and speed change
         for i in range(enemyNum):
             # Game over
-            if enemyY[i] > 700 and hp_bar < 150:
+            if enemyY[i] > 690 and hp_bar < 150:
+                print(hp_bar)
                 for j in range(enemyNum):
-                    enemyY[j] = random.randint(10, 30)
+                    enemyY[i] = random.randint(10, 30)
                     # c += 1
-                    hp_bar += random.randint(5, 10)
+                hp_bar += random.randint(5, 10)
                 # GG()
             elif hp_bar >= 150:
                 for j in range(enemyNum):
@@ -400,24 +406,24 @@ def game():
             if enemyX[i] <= 200:
                 if points < 100:
                     enemyX_change[i] = 1
-                elif points >= 100:
+                elif points>= 100 and points < 200:
                     enemyX_change[i] = 3
-                elif points >= 200:
+                elif points>= 200 and points < 300:
                     enemyX_change[i] = 5
-                elif points >= 300:
+                elif points>= 300 and points < 400:
                     enemyX_change[i] = 7
-                elif points >= 400:
+                elif points>= 400:
                     enemyX_change[i] = 10
                 enemyY[i] += enemyY_change[i]
 
             elif enemyX[i] >= 800:
                 if points < 100:
                     enemyX_change[i] = -1
-                elif points >= 100:
+                elif points>= 100 and points < 200:
                     enemyX_change[i] = -3
-                elif points >= 200:
+                elif points>= 200 and points < 300:
                     enemyX_change[i] = -5
-                elif points >= 300:
+                elif points>= 300 and points < 400:
                     enemyX_change[i] = -7
                 elif points >= 400:
                     enemyX_change[i] = -10
@@ -433,7 +439,7 @@ def game():
                 ammoY2 = 700
                 ammo_state2 = 'ready'
                 ammo_state1 = 'ready'
-                points += 10
+                points += random.randint(5, 20)
                 enemyX[i] = random.randint(200, 799)
                 enemyY[i] = 50
             enemy(enemyX[i], enemyY[i], i)
@@ -553,34 +559,39 @@ def game():
         draw_text('Score: ' + str(points), font, (0, 255, 0), screen, textX, textY)
         if points < 100:
             level = 'Level 1 - Easy'
-        elif points >= 100:
+            # print('1')
+        elif points>= 100 and points < 200:
             # if points == 100:
             #     level_up=1
             # if level_up==1:
             #     up = mixer.Sound('levelup.wav')
             #     up.play()
             level = 'Level 2 - Medium'
-        elif points >= 200:
+            # print('2')
+        elif points>= 200 and points < 300:
             # if points == 200:
             #     level_up=2
             # if level_up==2:
             #     up = mixer.Sound('levelup.wav')
             #     up.play()
             level = 'Level 3 - Hard'
-        elif points >= 300:
+            # print('3')
+        elif points>= 300 and points < 400:
             # if points == 300:
             #     level_up=3
             # if level_up==3:
             #     up = mixer.Sound('levelup.wav')
             #     up.play()
             level = 'Level 4 - Super Hard'
-        elif points >= 400:
+            # print('4')
+        elif points >= 400 :
             # if points == 400:
             #     level_up=4
             # if level_up==4:
             #     up = mixer.Sound('levelup.wav')
             #     up.play()
             level = 'Level 5 - You nut'
+            # print('5')
         draw_text(level, font, (255, 0, 0), screen, levelX, levelY)
         hp(screen, 150 - hp_bar)
         # print(150, 150 - hp_bar, hp_bar)
@@ -593,6 +604,8 @@ def game():
 def settings():
     running = True
     click2 = False
+    tap = False
+    count=0
     while running:
         screen.fill((95,95,95))
         screen.blit(bg_s,(0,0))
@@ -602,7 +615,7 @@ def settings():
         draw_text('Shoot : ^', font, (102, 102, 255), screen, 430, 150)
         draw_text('Left move: <-', font, (102, 102, 255), screen, 430, 220)
         draw_text('Right move: ->', font, (102, 102, 255), screen, 430, 290)
-        draw_text('Esc: get back to Main menu', font, (255, 255, 0), screen, 430, 360)
+        draw_text('Back to Main menu: Esc ', font, (255, 255, 0), screen, 430, 360)
 
         button_on_off = pygame.Rect(410, 455, 455, 50)
         if click2:
@@ -616,6 +629,14 @@ def settings():
         elif music==False:
             draw_text('Music Off - Press V: volume ', font, (0, 153, 0), screen, 430, 460)
 
+        mx, my = pygame.mouse.get_pos()
+
+        button_enemy = pygame.Rect(450, 250, 200, 50)
+        if button_enemy.collidepoint((mx, my)):
+            if tap:
+                pass
+        # draw_text('Enemies'+ str(enemyNum), font, (0, 153, 0), screen, 430, 460)
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -628,6 +649,10 @@ def settings():
                     click2 = False
                 if event.key == pygame.K_m:
                     click2 = True
+            # if event.type == MOUSEBUTTONDOWN:
+            #     if event.button == 1:
+            #         count+=1
+            #         tap = True
 
         pygame.display.update()
         mainClock.tick(60)
