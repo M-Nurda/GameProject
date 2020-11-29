@@ -16,9 +16,6 @@ clock = pygame.time.Clock()
 bg = pygame.image.load('bg4.jpeg')
 bg = pygame.transform.scale(bg, (1080, 800))
 
-bg_menu = pygame.image.load('bg5.jpg')
-bg_menu = pygame.transform.scale(bg_menu, (1080, 800))
-
 # Background sound
 # mixer.music.load('bg3_music.wav')
 # mixer.music.play(-1)
@@ -125,41 +122,72 @@ ammo_state1 = "ready"
 points = 0
 font = pygame.font.Font('freesansbold.ttf', 32)
 textX = 900
-textY = 20
+textY = 10
 # Level
 levelX = 420
-levelY = 20
+levelY = 10
 
-#Game Over
+#Game Over Text
 gg_font=pygame.font.Font('freesansbold.ttf', 32)
 
+# Health point
+black_bar = pygame.Surface((1080, 45))
 
-def show_level(x, y):
-    if points < 100:
-        # x='Level 1 - Easy'
-        level = font.render('Level 1 - Easy', True, (255, 0, 0))
-    elif points >= 100:
-        # x='Level 2 - Medium'
-        level = font.render('Level 2 - Medium', True, (255, 0, 0))
-    elif points >= 200:
-        # x='Level 3 - Hard'
-        level = font.render('Level 3 - Hard', True, (255, 0, 0))
-    elif points >= 300:
-        # x='Level 4 - Well Played'
-        level = font.render('Level 4 - Super Hard', True, (255, 0, 0))
-    elif points >= 400:
-        # x='Level 5 - You nut'
-        level = font.render('Level 5 - You nut', True, (255, 0, 0))
+# def show_level(x, y):
+#     if points < 100:
+#         # x='Level 1 - Easy'
+#         level = font.render('Level 1 - Easy', True, (255, 0, 0))
+#     elif points >= 100:
+#         # x='Level 2 - Medium'
+#         level = font.render('Level 2 - Medium', True, (255, 0, 0))
+#     elif points >= 200:
+#         # x='Level 3 - Hard'
+#         level = font.render('Level 3 - Hard', True, (255, 0, 0))
+#     elif points >= 300:
+#         # x='Level 4 - Well Played'
+#         level = font.render('Level 4 - Super Hard', True, (255, 0, 0))
+#     elif points >= 400:
+#         # x='Level 5 - You nut'
+#         level = font.render('Level 5 - You nut', True, (255, 0, 0))
+#
+#     # level = font.render('Level', True, (255, 0, 0))
+#     screen.blit(level, (x, y))
 
-    # level = font.render('Level', True, (255, 0, 0))
-    screen.blit(level, (x, y))
+# def show_points(x, y):
+#     score = font.render("Score: " + str(points), True, (0,255,0))
+#     screen.blit(score, (x, y))
 
-def show_points(x, y):
-    score = font.render("Score: " + str(points), True, (0,255,0))
-    screen.blit(score, (x, y))
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, 1, color)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
 
+def bb(black_bar, x, y):
+    screen.blit(black_bar, (x, y))
+    pygame.draw.rect(screen, (95,95,95), (0, 0, 1080, 45), 3)
 
+def hp(surface, player_shield):
+    if player_shield > 150:
+        player_shield_color = (0,252,134)
+        player_shield = 100
+    elif player_shield > 130:
+        player_shield_color = (0,252,52)
+    elif player_shield > 110:
+        player_shield_color = (117,252,0)
+    elif player_shield > 90:
+        player_shield_color = (252,252,0)
+    elif player_shield > 70:
+        player_shield_color = (252,218,0)
+    elif player_shield > 50:
+        player_shield_color = (252,159,51)
+    elif player_shield > 30:
+        player_shield_color = (255,84,51)
+    else:
+        player_shield_color= (255,0,0)
 
+    pygame.draw.rect(surface, (95, 95, 95), (5, 5, 155, 34), 3)
+    pygame.draw.rect(surface, player_shield_color, (7, 7, player_shield, 30))
 
 def GG():
     gg_text = font.render("GAME OVER", True, (255,0,0))
@@ -219,6 +247,7 @@ def touched2(enemyX,enemyY,playerX, playerY):
         return False
 
 global c
+hp_bar=0
 while True:
     c=0
     for event in pygame.event.get():
@@ -264,17 +293,21 @@ while True:
     # Enemy movement direction and speed change
     for i in range(enemyNum):
         #Game over
-        if enemyY[i]>700:
+        if enemyY[i]>700 and hp_bar<150:
             for j in range(enemyNum):
-                enemyY[j]=2000
-                c += 1
+                enemyY[j]=random.randint(10,30)
+                # c += 1
+                hp_bar+=random.randint(5,10)
             # GG()
+        elif hp_bar>=150:
+            for j in range(enemyNum):
+                enemyY[j] = 2000
             break
 
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 200:
             if points < 100:
-                enemyX_change[i] = 1
+                enemyX_change[i] = 10
             elif points >= 100:
                 enemyX_change[i] = 3
             elif points >= 200:
@@ -287,7 +320,7 @@ while True:
 
         elif enemyX[i] >= 800:
             if points < 100:
-                enemyX_change[i] = -1
+                enemyX_change[i] = -10
             elif points >= 100:
                 enemyX_change[i] = -3
             elif points >= 200:
@@ -376,19 +409,52 @@ while True:
         ammoY2 -= ammoY_change2
         ammoY1 -= ammoY_change1
 
-    if c>0:
+    if c>0 or hp_bar>=150:
         for i in range(enemyNum):
             enemyY[i] = 2000
         for i in range(15):
             meteorX[i] = 2000
             meteorX1[i] = 2000
         playerY = 2000
+        hp(screen, 0)
+        hp_bar=150
         GG()
-
-
     player(playerX, playerY)
-    show_points(textX, textY)
-    show_level(levelX, levelY)
+    bb(black_bar, 0, 0)
 
+    draw_text('Score: ' + str(points), font, (0, 255, 0), screen, textX, textY)
+    if points < 100:
+        level = 'Level 1 - Easy'
+    elif points >= 100:
+        if points == 100:
+            level_up = 1
+            if level_up == 1:
+                up = mixer.Sound('levelup.wav')
+                up.play()
+        level = 'Level 2 - Medium'
+    elif points >= 200:
+        if points == 200:
+            level_up = 2
+            if level_up == 2:
+                up = mixer.Sound('levelup.wav')
+                up.play()
+        level = 'Level 3 - Hard'
+    elif points >= 300:
+        if points == 300:
+            level_up = 3
+            if level_up == 3:
+                up = mixer.Sound('levelup.wav')
+                up.play()
+        level = 'Level 4 - Super Hard'
+    elif points >= 400:
+        if points == 400:
+            level_up = 4
+            if level_up == 4:
+                up = mixer.Sound('levelup.wav')
+                up.play()
+        level = 'Level 5 - You nut'
+    draw_text(level, font, (255, 0, 0), screen, levelX, levelY)
+    hp(screen, 150-hp_bar)
+    print(150, 150-hp_bar, hp_bar)
     pygame.display.update()
 
