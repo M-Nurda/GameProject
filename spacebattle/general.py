@@ -6,7 +6,7 @@ from pygame import mixer
 pygame.init()
 
 # Frames per second
-fps = 120
+fps = 60
 
 # Create the screen
 screen = pygame.display.set_mode((1080,800))
@@ -78,7 +78,7 @@ for i in range(15):
     # Initial Position and Speed of enemy
     meteorX.append(random.randint(0,150))
     meteorY.append(random.randint(5,8))
-    mY_change.append(random.uniform(1, 5))
+    mY_change.append(random.uniform(1, 3))
     mX_change.append(0)
 
 meteorImg1 = []
@@ -93,7 +93,7 @@ for i in range(15):
     # Initial Position and Speed of enemy
     meteorX1.append(random.randint(820,1050))
     meteorY1.append(random.randint(3,8))
-    mY_change1.append(random.uniform(1, 5))
+    mY_change1.append(random.uniform(1, 6))
     mX_change1.append(0)
 
 
@@ -106,7 +106,7 @@ ammoImg2 = pygame.transform.scale(ammoImg2, (30, 45))
 ammoX2 = 0
 ammoY2 = 700
 ammoX_change2 = 0
-ammoY_change2 = 2
+ammoY_change2 = 5
 ammo_state2 = "ready"
 
 # Left Ammo
@@ -118,7 +118,7 @@ ammoImg1 = pygame.transform.scale(ammoImg1, (30, 45))
 ammoX1 = 0
 ammoY1 = 700
 ammoX_change1 = 0
-ammoY_change1 = 2
+ammoY_change1 = 5
 ammo_state1 = "ready"
 
 # Points
@@ -126,15 +126,40 @@ points = 0
 font = pygame.font.Font('freesansbold.ttf', 32)
 textX = 900
 textY = 20
+# Level
+levelX = 420
+levelY = 20
 
 #Game Over
 gg_font=pygame.font.Font('freesansbold.ttf', 32)
 
 
+def show_level(x, y):
+    if points < 100:
+        # x='Level 1 - Easy'
+        level = font.render('Level 1 - Easy', True, (255, 0, 0))
+    elif points >= 100:
+        # x='Level 2 - Medium'
+        level = font.render('Level 2 - Medium', True, (255, 0, 0))
+    elif points >= 200:
+        # x='Level 3 - Hard'
+        level = font.render('Level 3 - Hard', True, (255, 0, 0))
+    elif points >= 300:
+        # x='Level 4 - Well Played'
+        level = font.render('Level 4 - Super Hard', True, (255, 0, 0))
+    elif points >= 400:
+        # x='Level 5 - You nut'
+        level = font.render('Level 5 - You nut', True, (255, 0, 0))
+
+    # level = font.render('Level', True, (255, 0, 0))
+    screen.blit(level, (x, y))
 
 def show_points(x, y):
     score = font.render("Score: " + str(points), True, (0,255,0))
     screen.blit(score, (x, y))
+
+
+
 
 def GG():
     gg_text = font.render("GAME OVER", True, (255,0,0))
@@ -173,7 +198,7 @@ def isCollision(enemyX,enemyY,ammoX1,ammoY1,ammoX2,ammoY2):
     dist2 = math.sqrt((enemyX-ammoX2)**2+(enemyY-ammoY2)**2)
 
     if dist1 < 27 or dist2 < 27:
-        print(dist1, dist2)
+        # print(dist1, dist2)
         return True
     else:
         return False
@@ -193,7 +218,7 @@ def touched2(enemyX,enemyY,playerX, playerY):
     else:
         return False
 
-
+global c
 while True:
     c=0
     for event in pygame.event.get():
@@ -239,20 +264,38 @@ while True:
     # Enemy movement direction and speed change
     for i in range(enemyNum):
         #Game over
-        if enemyY[i]>700 or c>0:
+        if enemyY[i]>700:
             for j in range(enemyNum):
                 enemyY[j]=2000
                 c += 1
-            GG()
+            # GG()
             break
 
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 200:
-            enemyX_change[i] = 5
+            if points < 100:
+                enemyX_change[i] = 1
+            elif points >= 100:
+                enemyX_change[i] = 3
+            elif points >= 200:
+                enemyX_change[i] = 5
+            elif points >= 300:
+                enemyX_change[i] = 7
+            elif points >= 400:
+                enemyX_change[i] = 10
             enemyY[i] += enemyY_change[i]
 
         elif enemyX[i] >= 800:
-            enemyX_change[i] = -5
+            if points < 100:
+                enemyX_change[i] = -1
+            elif points >= 100:
+                enemyX_change[i] = -3
+            elif points >= 200:
+                enemyX_change[i] = -5
+            elif points >= 300:
+                enemyX_change[i] = -7
+            elif points >= 400:
+                enemyX_change[i] = -10
             enemyY[i] += enemyY_change[i]
 
 
@@ -273,24 +316,23 @@ while True:
 
     # Meteor left
     for i in range(15):
-        print(c)
-        if c>0:
-            for j in range(15):
-                meteorX[j]=2000
-            break
-        else:
-            touch1 = touched1(meteorX[i], meteorY[i], playerX, playerY)
+        # if c>0:
+        #     for j in range(15):
+        #         meteorX[j]=2000
+        #     break
+        # else:
+        touch1 = touched1(meteorX[i], meteorY[i], playerX, playerY)
         if touch1==True:
             boom_sound = mixer.Sound('boom.wav')
             boom_sound.play()
             for j in range(15):
                 meteorX[j]=2000
-            GG()
-            c+=1
+                c+=1
+            break
 
         meteorY[i] += mY_change[i]
         if meteorY[i] >= 800:
-            mY_change[i] = random.uniform(2, 7)
+            mY_change[i] = random.uniform(1, 4)
             meteorY[i] = 0
             # meteorX[i] = random.randint(c+0, c+150)
             meteorY[i] += mY_change[i]
@@ -298,24 +340,23 @@ while True:
 
     # Meteor Right
     for i in range(15):
-        print(c)
-        if c>0:
-            for j in range(15):
-                meteorX1[j]=2000
-            break
-        else:
-            touch2 = touched1(meteorX1[i], meteorY1[i], playerX, playerY)
+        # if c>0:
+        #     for j in range(15):
+        #         meteorX1[j]=2000
+        #     break
+        # else:
+        touch2 = touched1(meteorX1[i], meteorY1[i], playerX, playerY)
         if touch2==True:
             boom_sound = mixer.Sound('boom.wav')
             boom_sound.play()
             for j in range(15):
                 meteorX1[j]=2000
-            GG()
-            c+=1
+                c+=1
+            break
 
         meteorY1[i] += mY_change1[i]
         if meteorY1[i] >= 800:
-            mY_change1[i] = random.uniform(2, 7)
+            mY_change1[i] = random.uniform(1, 4)
             meteorY1[i] = 0
             # meteorX[i] = random.randint(c+0, c+150)
             meteorY1[i] += mY_change1[i]
@@ -335,8 +376,19 @@ while True:
         ammoY2 -= ammoY_change2
         ammoY1 -= ammoY_change1
 
+    if c>0:
+        for i in range(enemyNum):
+            enemyY[i] = 2000
+        for i in range(15):
+            meteorX[i] = 2000
+            meteorX1[i] = 2000
+        playerY = 2000
+        GG()
+
+
     player(playerX, playerY)
-    # enemy(enemyX, enemyY)
     show_points(textX, textY)
+    show_level(levelX, levelY)
+
     pygame.display.update()
 
