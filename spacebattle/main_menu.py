@@ -267,27 +267,27 @@ def game():
         screen.blit(black_bar, (x, y))
         pygame.draw.rect(screen, (95, 95, 95), (0, 0, 1080, 45), 3)
 
-    def hp(surface, player_shield):
-        if player_shield > 150:
-            player_shield_color = (0, 252, 134)
-            player_shield = 100
-        elif player_shield > 130:
-            player_shield_color = (0, 252, 52)
-        elif player_shield > 110:
-            player_shield_color = (117, 252, 0)
-        elif player_shield > 90:
-            player_shield_color = (252, 252, 0)
-        elif player_shield > 70:
-            player_shield_color = (252, 218, 0)
-        elif player_shield > 50:
-            player_shield_color = (252, 159, 51)
-        elif player_shield > 30:
-            player_shield_color = (255, 84, 51)
+    def hp(surface, player_hp):
+        if player_hp > 150:
+            player_hp_colort = (0, 252, 134)
+            player_hp = 100
+        elif player_hp > 130:
+            player_hp_colort = (0, 252, 52)
+        elif player_hp > 110:
+            player_hp_colort = (117, 252, 0)
+        elif player_hp > 90:
+            player_hp_colort = (252, 252, 0)
+        elif player_hp > 70:
+            player_hp_colort = (252, 218, 0)
+        elif player_hp > 50:
+            player_hp_colort = (252, 159, 51)
+        elif player_hp > 30:
+            player_hp_colort = (255, 84, 51)
         else:
-            player_shield_color = (255, 0, 0)
+            player_hp_colort = (255, 0, 0)
 
         pygame.draw.rect(surface, (95, 95, 95), (5, 5, 155, 34), 3)
-        pygame.draw.rect(surface, player_shield_color, (7, 7, player_shield, 30))
+        pygame.draw.rect(surface, player_hp_colort, (7, 7, player_hp, 30))
 
     def GG():
         gg_text = font.render("GAME OVER", True, (255, 0, 0))
@@ -353,7 +353,24 @@ def game():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    playerX_change = -2
+                if event.key == pygame.K_RIGHT:
+                    playerX_change = 2
+                if event.key == pygame.K_UP:
+                    if ammo_state1 == 'ready' and ammo_state2 == 'ready':
+                        shot_sound = mixer.Sound('pew.wav')
+                        shot_sound.play()
 
+                        ammoX1 = playerX
+                        ammoX2 = playerX
+                        fire_ammo2(playerX, ammoY2)
+                        fire_ammo1(playerX, ammoY1)
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    playerX_change = 0
         # RGB = Red, Green, Blue -> background color
         screen.fill((0, 0, 0))
 
@@ -361,24 +378,7 @@ def game():
         screen.blit(bg, (0, 0))
         # screen.blit(bg_menu,(0,0))
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                playerX_change = -2
-            if event.key == pygame.K_RIGHT:
-                playerX_change = 2
-            if event.key == pygame.K_UP:
-                if ammo_state1 == 'ready' and ammo_state2 == 'ready':
-                    shot_sound = mixer.Sound('pew.wav')
-                    shot_sound.play()
 
-                    ammoX1 = playerX
-                    ammoX2 = playerX
-                    fire_ammo2(playerX, ammoY2)
-                    fire_ammo1(playerX, ammoY1)
-
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                playerX_change = 0
 
         # Boundries Check
         playerX += playerX_change
