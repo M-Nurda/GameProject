@@ -24,8 +24,8 @@ bg_menu = pygame.transform.scale(bg_s, (1080,800))
 
 font_menu = pygame.font.SysFont('timesnewromanboldttf.ttf', 84)
 font = pygame.font.SysFont('timesnewromanboldttf.ttf', 48)
-
-music = True
+info_font = pygame.font.SysFont('timesnewromanboldttf.ttf', 24)
+global music
 
 # print(pygame.font.get_fonts())
 def draw_text(text, font, color, surface, x, y):
@@ -79,8 +79,8 @@ def main_menu():
         pygame.draw.rect(screen, (255, 178, 102), button_4)
 
         draw_text('Play', font, (0, 153, 0), screen, 515, 260)
-        draw_text('Setting', font, (0, 0, 255), screen, 490, 360)
-        draw_text('Game', font, (0, 0, 255), screen, 495, 460)
+        draw_text('Help', font, (0, 0, 255), screen, 515, 360)
+        draw_text('Creators', font, (0, 0, 255), screen, 485, 460)
         draw_text('Exit', font, (255, 0, 0), screen, 520, 560)
         click = False
 
@@ -100,6 +100,9 @@ def main_menu():
         mainClock.tick(60)
 
 global enemyNum
+global shot
+shot = []
+music = True
 def game():
     # running = True
     # while running:
@@ -119,10 +122,11 @@ def game():
     bg = pygame.transform.scale(bg, (1080, 800))
 
     mixer.music.load('bg3_music.wav')
+    mixer.music.set_volume(0.5)
     if music == True:
         mixer.music.play(-1)
     elif music == False:
-        pass
+        mixer.music.stop()
 
     # Title and Icon
     # pygame.display.set_caption("Space Battle")
@@ -151,7 +155,7 @@ def game():
     enemyNum = 5
     for i in range(enemyNum):
         # Load enemy picture
-        temp = pygame.image.load('ufo.png')
+        temp = pygame.image.load('ufo1.png')
         # Change the size of enemy
         temp = pygame.transform.scale(temp, (60, 60))
         # enemyImg.append(pygame.image.load('ufo.png'))
@@ -162,6 +166,8 @@ def game():
         enemyY.append(random.randint(30, 70))
         enemyX_change.append(1)
         enemyY_change.append(50)
+
+
 
     # Meteor
     meteorImg = []
@@ -198,6 +204,35 @@ def game():
     global level
     global points
     global hp_bar
+    global bullet_state
+    global bot
+    shot = []
+    bullet = []
+    bullet_x = []
+    bullet_y = []
+    bullet_changeX = []
+    bullet_changeY = []
+    bullet_state = []
+
+    for i in range(enemyNum):
+        shot.append(random.randint(300, 750))
+        bullet_temp = pygame.image.load('bullet.png')
+        bullet_temp = pygame.transform.scale(bullet_temp, (30, 45))
+        bullet.append(bullet_temp)
+        bullet_x.append(enemyX[i])
+        bullet_y.append(enemyY[i])
+        bullet_changeX.append(0)
+        bullet_changeY.append(5)
+        bullet_state.append('ready')
+
+    # print(bullet)
+    # print(bullet_x)
+    # print(bullet_y)
+    # print(bullet_changeX)
+    # print(bullet_changeY)
+    # print(bullet_state)
+
+
     # Right Ammo
     # Load ammo picture
     ammoImg2 = pygame.image.load('ammo.png')
@@ -226,18 +261,21 @@ def game():
 
     # Points
     points = 0
+    bot = 0
     font = pygame.font.Font('freesansbold.ttf', 32)
-    textX = 900
-    textY = 10
+    textX1 = 830
+    textY1 = 10
+    textX2 = 830
+    textY2 = 37
     # Level
-    levelX = 420
+    levelX = 410
     levelY = 10
 
     # Game Over Text
-    gg_font = pygame.font.Font('freesansbold.ttf', 32)
-
+    gg_font = pygame.font.Font('freesansbold.ttf', 24)
+    score_font = pygame.font.Font('freesansbold.ttf', 24)
     # Health point
-    black_bar = pygame.Surface((1080, 45))
+    black_bar = pygame.Surface((1080, 64))
 
     # def show_level(x, y):
     #     if points < 100:
@@ -265,7 +303,7 @@ def game():
 
     def bb(black_bar, x, y):
         screen.blit(black_bar, (x, y))
-        pygame.draw.rect(screen, (95, 95, 95), (0, 0, 1080, 45), 3)
+        pygame.draw.rect(screen, (95, 95, 95), (0, 0, 1080, 65), 3)
 
     def hp(surface, player_hp):
         if player_hp > 150:
@@ -286,16 +324,18 @@ def game():
         else:
             player_hp_colort = (255, 0, 0)
 
-        pygame.draw.rect(surface, (95, 95, 95), (5, 5, 155, 34), 3)
-        pygame.draw.rect(surface, player_hp_colort, (7, 7, player_hp, 30))
+        pygame.draw.rect(surface, (95, 95, 95), (8, 15, 155, 34), 3)
+        pygame.draw.rect(surface, player_hp_colort, (10, 17, player_hp, 30))
 
     def GG():
         gg_text = font.render("GAME OVER", True, (255, 0, 0))
         score_t = font.render("Score: " + str(points), True, (255, 255, 0))
+        bot_score = font.render("Bot score: " +str(bot), True, (255, 255, 0))
 
 
         screen.blit(gg_text, (450, 300))
         screen.blit(score_t, (450, 350))
+        screen.blit(bot_score, (450, 400))
 
     def player(x, y):
         screen.blit(playerImg, (x, y))
@@ -318,6 +358,22 @@ def game():
         global ammo_state1
         ammo_state1 = 'fired'
         screen.blit(ammoImg1, (x - 13, y - 25))
+
+    def fire_bullet(x, y, i):
+        global bullet_state
+        bullet_state[i] = 'fired'
+        screen.blit(bullet[i], (x, y))
+
+    def collision_enemy_check(playerX, playerY, bullet_x, bullet_y, i):
+        a = (playerX - bullet_x) ** 2
+        b = (playerY - bullet_y) ** 2
+        # qwe = math.sqrt((playerX-bullet_x[i])**2+(playerY-bullet_y[i])**2)
+        qwe = math.sqrt(a + b)
+        if qwe < 27:
+            print(qwe)
+            return True
+        else:
+            return False
 
     def isCollision(enemyX, enemyY, ammoX1, ammoY1, ammoX2, ammoY2):
         dist1 = math.sqrt((enemyX - ammoX1) ** 2 + (enemyY - ammoY1) ** 2)
@@ -361,6 +417,7 @@ def game():
                 if event.key == pygame.K_UP:
                     if ammo_state1 == 'ready' and ammo_state2 == 'ready':
                         shot_sound = mixer.Sound('pew.wav')
+                        shot_sound.set_volume(0.5)
                         shot_sound.play()
 
                         ammoX1 = playerX
@@ -429,10 +486,42 @@ def game():
                     enemyX_change[i] = -10
                 enemyY[i] += enemyY_change[i]
 
+            # print(bullet_x[i] // 100, playerX // 100)
+            pop = bullet_x[i] // 100
+            pip = playerX // 100
+            if pop == pip:
+                if bullet_state[i] == 'ready':
+                    enemy_shot = mixer.Sound('pew.wav')
+                    enemy_shot.set_volume(0.2)
+                    enemy_shot.play()
+
+                    bullet_x[i] = enemyX[i]
+                    fire_bullet(enemyX[i], bullet_y[i], i)
+            if bullet_y[i] >= 800:
+                bullet_y[i] = enemyY[i]
+                bullet_state[i] = 'ready'
+
+            if bullet_state[i] == 'fired':
+                fire_bullet(bullet_x[i], bullet_y[i], i)
+                # fire_ammo1(ammoX1, ammoY1)
+                bullet_y[i] += bullet_changeY[i]
+                # ammoY1 -= ammoY_change1
+
+            collision_enemy = collision_enemy_check(playerX, playerY, bullet_x[i], bullet_y[i], i)
+            if collision_enemy:
+                boom_sound = mixer.Sound('boom.wav')
+                boom_sound.set_volume(0.2)
+                boom_sound.play()
+
+                bullet_y[i] = enemyY[i]
+                bullet_state[i] = 'ready'
+                points -= 5
+                bot += random.randint(5,25)
             # Collision laser and enemy
             collision = isCollision(enemyX[i], enemyY[i], ammoX1, ammoY1, ammoX2, ammoY2)
             if collision:
                 boom_sound = mixer.Sound('boom.wav')
+                boom_sound.set_volume(0.2)
                 boom_sound.play()
 
                 ammoY1 = 700
@@ -454,7 +543,9 @@ def game():
             touch1 = touched1(meteorX[i], meteorY[i], playerX, playerY)
             if touch1 == True:
                 boom_sound = mixer.Sound('boom.wav')
+                boom_sound.set_volume(0.2)
                 boom_sound.play()
+
                 for j in range(15):
                     meteorX[j] = 2000
                     c += 1
@@ -478,6 +569,7 @@ def game():
             touch2 = touched2(meteorX1[i], meteorY1[i], playerX, playerY)
             if touch2 == True:
                 boom_sound = mixer.Sound('boom.wav')
+                boom_sound.set_volume(0.2)
                 boom_sound.play()
                 for j in range(15):
                     meteorX1[j] = 2000
@@ -519,6 +611,7 @@ def game():
             hp_bar = 150
             if check1==1:
                 haha = mixer.Sound('loser.wav')
+                haha.set_volume(2)
                 haha.play()
             GG()
 
@@ -538,6 +631,7 @@ def game():
 
             pygame.draw.rect(screen, (255, 178, 102), button_play_again)
             pygame.draw.rect(screen, (255, 178, 102), button_main_menu)
+
             draw_text('Play Again', font, (0, 153, 0), screen, 470, 560)
             draw_text('Main menu', font, (0, 0, 255), screen, 465, 660)
             click1 = False
@@ -556,7 +650,8 @@ def game():
         player(playerX, playerY)
         bb(black_bar, 0, 0)
 
-        draw_text('Score: ' + str(points), font, (0, 255, 0), screen, textX, textY)
+        draw_text('Score: ' + str(points), score_font, (0, 255, 0), screen, textX1, textY1)
+        draw_text('Enemy Points: ' + str(bot), score_font, (255, 255, 0), screen, textX2, textY2)
         if points < 100:
             level = 'Level 1 - Easy'
             # print('1')
@@ -610,33 +705,6 @@ def settings():
         screen.fill((95,95,95))
         screen.blit(bg_s,(0,0))
 
-        draw_text('Settings',font_menu , (255,255,0), screen, 410, 50)
-
-        draw_text('Shoot : ^', font, (102, 102, 255), screen, 430, 150)
-        draw_text('Left move: <-', font, (102, 102, 255), screen, 430, 220)
-        draw_text('Right move: ->', font, (102, 102, 255), screen, 430, 290)
-        draw_text('Back to Main menu: Esc ', font, (255, 255, 0), screen, 430, 360)
-
-        button_on_off = pygame.Rect(410, 455, 455, 50)
-        if click2:
-            music = False
-        else:
-            music = True
-
-        pygame.draw.rect(screen, (255, 178, 102), button_on_off)
-        if music==True:
-            draw_text('Music On -  Press M: mute ', font, (0, 153, 0), screen, 430, 460)
-        elif music==False:
-            draw_text('Music Off - Press V: volume ', font, (0, 153, 0), screen, 430, 460)
-
-        mx, my = pygame.mouse.get_pos()
-
-        button_enemy = pygame.Rect(450, 250, 200, 50)
-        if button_enemy.collidepoint((mx, my)):
-            if tap:
-                pass
-        # draw_text('Enemies'+ str(enemyNum), font, (0, 153, 0), screen, 430, 460)
-
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -646,9 +714,78 @@ def settings():
                     running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_v:
-                    click2 = False
-                if event.key == pygame.K_m:
                     click2 = True
+                if event.key == pygame.K_m:
+                    click2 = False
+
+        draw_text('Info',font_menu , (255,255,0), screen, 460, 50)
+
+        draw_text('Shoot', font, (255, 0, 0), screen, 480, 150)
+        draw_text('Left move', font, (255, 0, 0), screen, 480, 220)
+        draw_text('Right move', font, (255, 0, 0), screen, 480, 290)
+        draw_text('Back to Main menu', font, (255, 0, 255), screen, 480, 360)
+
+        up = pygame.image.load('up.png')
+        up = pygame.transform.scale(up, (40, 40))
+        screen.blit(up, (400, 140))
+
+        left = pygame.image.load('left.png')
+        left = pygame.transform.scale(left, (40, 40))
+        screen.blit(left, (400, 210))
+
+        right = pygame.image.load('right.png')
+        right = pygame.transform.scale(right, (40, 40))
+        screen.blit(right, (400, 280))
+
+        esc = pygame.image.load('escape.png')
+        esc = pygame.transform.scale(esc, (45, 45))
+        screen.blit(esc, (400, 350))
+
+
+        info = pygame.Rect(350, 440, 440, 315)
+        pygame.draw.rect(screen, (80, 80, 80), info)
+
+        draw_text('This game about space invaders.', info_font, (0, 255, 255), screen, 370, 460)
+
+        draw_text('This is an arcade game, you can not win here.', info_font, (0, 255, 255), screen, 370, 490)
+
+        draw_text('The goal of the game is to kill enemies and gain', info_font, (0, 255, 255), screen, 370, 520)
+        draw_text('points, as well as prevent them from reaching', info_font, (0, 255, 255), screen, 400, 550)
+        draw_text('your border.', info_font, (0, 255, 255), screen, 400, 580)
+
+        draw_text('There is an asteroid on the sides, if you hit them', info_font, (0, 255, 255), screen, 370, 610)
+        draw_text('the game will be over.', info_font, (0, 255, 255), screen, 400, 640)
+
+        draw_text('Also, the bot can shoot and it takes points from', info_font, (0, 255, 255), screen, 370, 670)
+        draw_text('you and adds it to itself.', info_font, (0, 255, 255), screen, 400, 700)
+
+        draw_text('Good Luck :)', info_font, (0, 255, 100), screen, 370, 730)
+
+
+
+
+
+        # button_on_off = pygame.Rect(410, 455, 455, 50)
+        # if click2:
+        #     music = True
+        # else:
+        #     music = False
+
+        # pygame.draw.rect(screen, (255, 178, 102), button_on_off)
+        # if music == True:
+        #     draw_text('Music On -  Press M: mute ', font, (0, 153, 0), screen, 430, 460)
+        # elif music == False:
+        #     draw_text('Music Off - Press V: volume ', font, (0, 153, 0), screen, 430, 460)
+        #
+        # mx, my = pygame.mouse.get_pos()
+
+        # button_enemy = pygame.Rect(450, 250, 200, 50)
+        # if button_enemy.collidepoint((mx, my)):
+        #     if tap:
+        #         pass
+        # draw_text('Enemies'+ str(enemyNum), font, (0, 153, 0), screen, 430, 460)
+
+
             # if event.type == MOUSEBUTTONDOWN:
             #     if event.button == 1:
             #         count+=1

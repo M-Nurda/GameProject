@@ -93,6 +93,33 @@ for i in range(15):
     mY_change1.append(random.uniform(1, 6))
     mX_change1.append(0)
 
+shot = []
+bullet = []
+bullet_x = []
+bullet_y = []
+bullet_changeX = []
+bullet_changeY = []
+bullet_state = []
+
+
+
+for i in range(enemyNum):
+    shot.append(random.randint(300, 750))
+    bullet_temp = pygame.image.load('bullet.png')
+    bullet_temp = pygame.transform.scale(bullet_temp, (30, 45))
+    bullet.append(bullet_temp)
+    bullet_x.append(enemyX[i])
+    bullet_y.append(enemyY[i])
+    bullet_changeX.append(0)
+    bullet_changeY.append(5)
+    bullet_state.append('ready')
+
+print(bullet)
+print(bullet_x)
+print(bullet_y)
+print(bullet_changeX)
+print(bullet_changeY)
+print(bullet_state)
 
 # Right Ammo
 # Load ammo picture
@@ -221,6 +248,21 @@ def fire_ammo1(x, y):
     ammo_state1 = 'fired'
     screen.blit(ammoImg1, (x - 12, y - 25))
 
+def fire_bullet(x, y, i):
+    bullet_state[i] = 'fired'
+    screen.blit(bullet[i], (x, y))
+
+def collision_enemy_check(playerX, playerY, bullet_x, bullet_y, i):
+    a=(playerX-bullet_x)**2
+    b=(playerY-bullet_y)**2
+    # qwe = math.sqrt((playerX-bullet_x[i])**2+(playerY-bullet_y[i])**2)
+    qwe= math.sqrt(a+b)
+    if qwe < 27:
+        print(qwe)
+        return True
+    else:
+        return False
+
 def isCollision(enemyX,enemyY,ammoX1,ammoY1,ammoX2,ammoY2):
     dist1 = math.sqrt((enemyX-ammoX1)**2+(enemyY-ammoY1)**2)
     dist2 = math.sqrt((enemyX-ammoX2)**2+(enemyY-ammoY2)**2)
@@ -234,14 +276,14 @@ def isCollision(enemyX,enemyY,ammoX1,ammoY1,ammoX2,ammoY2):
 def touched1(enemyX,enemyY,playerX, playerY):
     dist1 = math.sqrt((enemyX-playerX)**2+(enemyY-playerY)**2)
     if dist1 < 27:
-        print(dist1)
+        # print(dist1)
         return True
     else:
         return False
 def touched2(enemyX,enemyY,playerX, playerY):
     dist1 = math.sqrt((enemyX-playerX)**2+(enemyY-playerY)**2)
     if dist1 < 27:
-        print(dist1)
+        # print(dist1)
         return True
     else:
         return False
@@ -265,9 +307,9 @@ while True:
 
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_LEFT:
-            playerX_change = -2
+            playerX_change = -3
         if event.key == pygame.K_RIGHT:
-            playerX_change = 2
+            playerX_change = 3
         if event.key == pygame.K_UP:
             if ammo_state1 == 'ready' and ammo_state2 == 'ready':
                 shot_sound = mixer.Sound('pew.wav')
@@ -277,6 +319,7 @@ while True:
                 ammoX2 = playerX
                 fire_ammo2(playerX, ammoY2)
                 fire_ammo1(playerX, ammoY1)
+
 
     if event.type == pygame.KEYUP:
         if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
@@ -303,6 +346,7 @@ while True:
             for j in range(enemyNum):
                 enemyY[j] = 2000
             break
+
 
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 200:
@@ -331,11 +375,42 @@ while True:
                 enemyX_change[i] = -10
             enemyY[i] += enemyY_change[i]
 
+        # print(bullet_x[i] // 100, playerX // 100)
+        pop = bullet_x[i]//100
+        pip = playerX//100
+        if pop == pip:
+            if bullet_state[i] == 'ready':
+                enemy_shot = mixer.Sound('pew.wav')
+                enemy_shot.set_volume(0.2)
+                enemy_shot.play()
+
+                bullet_x[i] = enemyX[i]
+                fire_bullet(enemyX[i], bullet_y[i], i)
+        if bullet_y[i] >= 800:
+            bullet_y[i] = enemyY[i]
+            bullet_state[i] = 'ready'
+
+        if bullet_state[i] == 'fired' :
+            fire_bullet(bullet_x[i], bullet_y[i], i)
+            # fire_ammo1(ammoX1, ammoY1)
+            bullet_y[i] += bullet_changeY[i]
+            # ammoY1 -= ammoY_change1
+
+        collision_enemy = collision_enemy_check(playerX, playerY, bullet_x[i], bullet_y[i], i)
+        if collision_enemy:
+            boom_sound = mixer.Sound('boom.wav')
+            boom_sound.set_volume(0.1)
+            boom_sound.play()
+
+            bullet_y[i]=enemyY[i]
+            bullet_state[i] = 'ready'
+            points -= 10
 
         # Collision laser and enemy
         collision = isCollision(enemyX[i], enemyY[i], ammoX1, ammoY1, ammoX2, ammoY2)
         if collision:
             boom_sound = mixer.Sound('boom.wav')
+            boom_sound.set_volume(0.1)
             boom_sound.play()
 
             ammoY1 = 700
@@ -428,34 +503,34 @@ while True:
     elif points >= 100:
         if points == 100:
             level_up = 1
-            if level_up == 1:
-                up = mixer.Sound('levelup.wav')
-                up.play()
+            # if level_up == 1:
+            #     up = mixer.Sound('levelup.wav')
+            #     up.play()
         level = 'Level 2 - Medium'
     elif points >= 200:
         if points == 200:
             level_up = 2
-            if level_up == 2:
-                up = mixer.Sound('levelup.wav')
-                up.play()
+            # if level_up == 2:
+            #     up = mixer.Sound('levelup.wav')
+            #     up.play()
         level = 'Level 3 - Hard'
     elif points >= 300:
         if points == 300:
             level_up = 3
-            if level_up == 3:
-                up = mixer.Sound('levelup.wav')
-                up.play()
+            # if level_up == 3:
+            #     up = mixer.Sound('levelup.wav')
+            #     up.play()
         level = 'Level 4 - Super Hard'
     elif points >= 400:
         if points == 400:
             level_up = 4
-            if level_up == 4:
-                up = mixer.Sound('levelup.wav')
-                up.play()
+            # if level_up == 4:
+            #     up = mixer.Sound('levelup.wav')
+            #     up.play()
         level = 'Level 5 - You nut'
     draw_text(level, font, (255, 0, 0), screen, levelX, levelY)
     hp(screen, 150-hp_bar)
-    print(150, 150-hp_bar, hp_bar)
+    # print(150, 150-hp_bar, hp_bar)
     pygame.display.update()
     clock.tick(fps)
 
